@@ -1,0 +1,7 @@
+name = "pokemon-quiz-rooms"
+main = "index.js"
+compatibility_date = "2026-11-17"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PokemonRoom"]
