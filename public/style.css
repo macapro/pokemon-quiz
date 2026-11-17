@@ -14,7 +14,17 @@ body{margin:0;background:radial-gradient(ellipse at 70% 0%,#1b2b4b 0,transparent
 
 .brand small{display:block;color:var(--muted);font:12px 'Gowun Dodum';margin-top:2px}
 
-.ball{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,#ff7e8c 0 48%,#f7f8ff 49% 100%);color:#1a2540;font-size:28px}
+/* 온라인 준비 옆 아이콘 */
+.ball{
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  background:url("/favicon.png") center / cover no-repeat;
+  color:transparent;
+  font-size:0;
+}
 
 .top-right{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
 
@@ -26,7 +36,7 @@ main{min-height:calc(100vh - 130px)}
 
 .view.active{display:block}
 
-/* 메인 화면 배경 사진: favicon.png */
+/* 메인 화면 배경 */
 .hero{
   position:relative;
   overflow:hidden;
@@ -209,3 +219,4 @@ footer{text-align:center;color:#697995;font-size:11px;padding:18px 0 26px;border
   .cho{letter-spacing:7px}
   .top{height:66px}
 }
+
