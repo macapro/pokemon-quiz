@@ -28,7 +28,7 @@ Cloudflare 공식 안내에 따라 Durable Object는 Pages 프로젝트 안에�
 Pages 프로젝트 생성 후 CLI 배포를 원하면 `npx wrangler pages deploy public --project-name pokemon-initial-quiz`를 사용할 수 있습니다. Pages 프로젝트에 `wrangler.toml`을 연결할 때는 대시보드 설정과 파일 설정이 일치하는지 먼저 확인하세요.
 
 ## 데이터/동작 관련
-- 현재 제공된 코드에서 `pokemonTypes` 및 `pokemonGenerations`에 실제로 존재하는 1121개 키를 출제 대상으로 사용합니다. 누락된 타입/세대 정보는 임의로 채우지 않습니다.
+- 현재 제공된 코드에서 `pokemonTypes` 및 `pokemonGenerations`에 실제로 존재하는 1118개 키를 출제 대상으로 사용합니다. 누락된 타입/세대 정보는 임의로 채우지 않습니다.
 - Mega 포켓몬 첫 글자 힌트는 `메가`, 이름 끝이 X/Y인 경우 마지막 글자 힌트는 X 또는 Y로 표시합니다.
 - 개인 점수는 동일 브라우저에 저장됩니다. 멀티플레이 점수는 방 단위로 유지되며, 방 코드를 알고 있는 참가자끼리 공유됩니다.
 - 이 프로젝트는 팬메이드 퀴즈이며 Pokémon 상표/저작권은 각 권리자에게 있습니다.
