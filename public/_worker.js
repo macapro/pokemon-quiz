@@ -5,9 +5,6 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/api/rooms/create' && request.method === 'POST') {
       const body = await request.json();
-      if (!/^[0-9]{4,8}$/.test(String(body.password || ''))) {
-        return json({ error: '비밀번호는 숫자 4~8자리로 설정하세요.' }, 400);
-      }
       const code = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
       const id = env.ROOMS.idFromName(code);
       const stub = env.ROOMS.get(id);
