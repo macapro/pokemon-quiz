@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+
+:root{--bg:#0c1222;--panel:#151f35;--panel2:#1b2944;--line:#2b3a59;--text:#f4f7ff;--muted:#9eacc7;--cyan:#62e6e1;--blue:#6c8cff;--pink:#ff8eae;--gold:#ffd36e}
+
+*{box-sizing:border-box}
+
+body{margin:0;background:radial-gradient(ellipse at 70% 0%,#1b2b4b 0,transparent 40%),var(--bg);color:var(--text);font-family:'Gowun Dodum',sans-serif;min-height:100vh}
+
+.shell{max-width:1120px;margin:auto;padding:0 24px}
+
+.top{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ffffff12}
+
+.brand{display:flex;align-items:center;gap:12px;color:var(--text);text-decoration:none;font:22px Jua}
+
+.brand small{display:block;color:var(--muted);font:12px 'Gowun Dodum';margin-top:2px}
+
+/* 온라인 준비 옆 아이콘 */
+.ball{
+  display:grid;
+  place-items:center;
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  background:url("/favicon.png") center / cover no-repeat;
+  color:transparent;
+  font-size:0;
+}
+
+.top-right{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+
+.live-dot{width:8px;height:8px;background:#55e0aa;border-radius:50%;box-shadow:0 0 12px #55e0aa}
+
+main{min-height:calc(100vh - 130px)}
+
+.view{display:none;padding:38px 0 54px}
+
+.view.active{display:block}
+
+/* 메인 화면 배경 */
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding:50px 46px;
+  border:1px solid #ffffff12;
+  border-radius:28px;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(12,18,34,.65),
+      rgba(12,18,34,.35)
+    ),
+    url("/favicon.png") center center / cover no-repeat;
+  min-height:280px;
+}
+
+.eyebrow,.tag{font:11px Jua;letter-spacing:2px;color:var(--cyan)}
+
+h1{font:clamp(36px,6vw,58px)/1.17 Jua;margin:18px 0 12px;letter-spacing:-1px}
+
+h1 em{font-style:normal;color:var(--cyan)}
+
+.hero p,.mode-card p{color:#b8c5dc;line-height:1.8;margin:0}
+
+.hero-orb{position:absolute;right:10%;top:18px;font-size:150px;opacity:.16;filter:drop-shadow(0 0 24px #7ee6ff);transform:rotate(-18deg)}
+
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+
+.mode-card{position:relative;padding:25px;border-radius:22px;background:var(--panel);border:1px solid var(--line);display:grid;grid-template-columns:52px 1fr;gap:0 14px;align-items:start}
+
+.mode-icon{width:48px;height:48px;border-radius:15px;background:#263b5c;display:grid;place-items:center;font-size:24px}
+
+.mode-card h2,.panel h2{font:25px Jua;margin:7px 0}
+
+.mode-card p{font-size:13px;min-height:46px}
+
+.mode-card .primary{grid-column:1/-1;margin-top:20px}
+
+.multi .mode-icon{background:#3a315c}
+
+.primary,.secondary,.ghost,.back,.hint-buttons button,.room-info button{border:0;border-radius:12px;padding:13px 17px;font:15px Jua;cursor:pointer;transition:.18s}
+
+.primary{background:linear-gradient(100deg,#5ce2dc,#73b6ff);color:#101a30;box-shadow:0 8px 22px #55cbd52a}
+
+.primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+
+.primary b{float:right}
+
+.secondary{background:#293956;color:var(--text);border:1px solid #425477}
+
+.ghost{background:transparent;color:#b7c3d9;border:1px solid var(--line)}
+
+.stats-row{display:flex;justify-content:center;gap:90px;margin:28px 0 0}
+
+.stats-row div{text-align:center}
+
+.stats-row strong{display:block;font:24px Jua;color:var(--gold)}
+
+.stats-row span{font-size:12px;color:var(--muted)}
+
+footer{text-align:center;color:#697995;font-size:11px;padding:18px 0 26px;border-top:1px solid #ffffff0d}
+
+.back{background:transparent;color:#aab9d4;padding:8px 0}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px}
+
+.narrow{max-width:480px;margin:24px auto}
+
+.muted{color:var(--muted);font-size:13px;line-height:1.7}
+
+.panel label{display:block;margin:20px 0 8px;font-size:13px;color:#c9d5e9}
+
+.panel input,.answer-row input{width:100%;border:1px solid #3b4d70;border-radius:12px;background:#0d172b;color:white;padding:14px 15px;font:15px 'Gowun Dodum';outline:none;margin-top:8px}
+
+.panel input:focus,.answer-row input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #62e6e122}
+
+.full{width:100%;margin-top:12px}
+
+.or{display:flex;align-items:center;gap:12px;color:#72819d;font-size:12px;margin:22px 0}
+
+.or:before,.or:after{content:'';height:1px;background:var(--line);flex:1}
+
+.error{color:#ff9eae;font-size:12px;min-height:18px}
+
+.game-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+
+.room-pill{font:12px Jua;color:var(--cyan);background:#1c3949;padding:8px 13px;border-radius:99px}
+
+.timer{font:24px Jua;color:var(--gold);font-variant-numeric:tabular-nums}
+
+.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:18px}
+
+.main-game{min-width:0}
+
+.question-card,.hint-card,.side-panel>div{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:25px}
+
+.question-meta{display:flex;justify-content:space-between;color:#8192b3;font:11px Jua;letter-spacing:1px}
+
+.question-title{text-align:center;color:#bdc9de;margin-top:22px;font-size:15px}
+
+.cho{text-align:center;font:clamp(48px,9vw,76px) Jua;letter-spacing:12px;color:var(--cyan);padding:22px 0 8px;text-shadow:0 0 30px #62e6e133;overflow-wrap:anywhere}
+
+.length{text-align:center;color:#8798b5;font-size:12px}
+
+.answer-row{display:flex;gap:10px;max-width:560px;margin:24px auto 0}
+
+.answer-row input{margin:0;min-width:0}
+
+.answer-row .primary{white-space:nowrap}
+
+.feedback{text-align:center;min-height:24px;margin-top:14px;font-size:13px;color:var(--gold)}
+
+.hint-card{margin-top:16px}
+
+.hint-title{display:flex;justify-content:space-between;align-items:center;font:18px Jua}
+
+.hint-title small{font:11px 'Gowun Dodum';color:#a0aec6}
+
+.hint-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+
+.hint-buttons button{background:#253653;border:1px solid #3b4d70;color:#e7efff;padding:11px 5px;font-size:13px}
+
+.hint-buttons button:disabled{opacity:.35;cursor:not-allowed}
+
+.hint-buttons small{display:block;font:10px 'Gowun Dodum';color:#9fb0ce;margin-top:4px}
+
+.hint-output{margin-top:13px;background:#101a2e;border-radius:11px;padding:13px;color:#b9cbe5;font-size:13px;line-height:1.7;min-height:44px}
+
+.action-row{display:flex;justify-content:space-between;margin-top:14px}
+
+.side-panel{display:flex;flex-direction:column;gap:14px}
+
+.score-box{text-align:center}
+
+.score-box>span,.room-info>span{color:var(--muted);font-size:12px}
+
+.score-box strong{display:block;font:38px Jua;color:var(--gold);margin:8px}
+
+.score-box strong small{font-size:15px}
+
+.score-box>small{color:#8393ae;font-size:11px}
+
+.rank-title{font:16px Jua;margin-bottom:15px}
+
+.ranking{display:flex;flex-direction:column;gap:9px}
+
+.rank-item{display:flex;justify-content:space-between;font-size:12px;color:#c5d1e6}
+
+.rank-item b{color:var(--gold)}
+
+.room-info{display:flex;flex-direction:column;align-items:center;gap:8px}
+
+.room-info strong{font:27px Jua;letter-spacing:4px;color:var(--cyan)}
+
+.room-info button{background:#2b3e5d;color:white;font-size:12px;padding:8px 15px}
+
+.tiny{font-size:10px}
+
+.hidden{display:none!important}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#e9f7ff;color:#14223b;padding:11px 18px;border-radius:12px;font-size:13px;transition:.2s;box-shadow:0 10px 30px #0005}
+
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:760px){
+  .shell{padding:0 16px}
+  .hero{padding:34px 24px;min-height:260px}
+  .hero-orb{right:-12px;top:65px;font-size:110px}
+  .mode-grid{grid-template-columns:1fr}
+  .mode-card{padding:20px}
+  .stats-row{gap:35px}
+  .game-layout{grid-template-columns:1fr}
+  .side-panel{display:grid;grid-template-columns:1fr 1fr}
+  .room-info{grid-column:1/-1}
+  .question-card,.hint-card{padding:19px}
+  .answer-row{flex-direction:column}
+  .answer-row .primary{width:100%}
+  .hint-buttons{grid-template-columns:repeat(2,1fr)}
+  .game-head{gap:12px}
+  .cho{letter-spacing:7px}
+  .top{height:66px}
+}
+
