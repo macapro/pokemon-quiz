@@ -6,24 +6,6 @@ const DEX = pokemonData.descriptions || {};
 const NAMES = Object.keys(TYPES);
 const json = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 const clean = value => String(value || '').trim().replace(/\s+/g, '').slice(0, 40);
-
-const validPassword = value => /^[0-9]{4,8}$/.test(String(value || ''));
-const toHex = bytes => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
-const fromHex = hex => new Uint8Array((hex.match(/.{2}/g) || []).map(x => parseInt(x, 16)));
-async function makePasswordHash(password, saltHex) {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: fromHex(saltHex), iterations: 120000, hash: 'SHA-256' }, key, 256);
-  return toHex(bits);
-}
-async function newPasswordRecord(password) {
-  const saltHex = toHex(crypto.getRandomValues(new Uint8Array(16)));
-  return { salt: saltHex, hash: await makePasswordHash(password, saltHex) };
-}
-async function checkPassword(password, record) {
-  if (!validPassword(password) || !record?.salt || !record?.hash) return false;
-  return (await makePasswordHash(password, record.salt)) === record.hash;
-}
-
 const initial = name => { const a=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']; return [...name].map(ch=>{const n=ch.charCodeAt(0)-44032;return n>=0&&n<=11171?a[Math.floor(n/588)]:ch}).join(''); };
 function newQuestion(number) { const answer=NAMES[Math.floor(Math.random()*NAMES.length)]; return { answer, cho:initial(answer), length:[...answer].length, number, phase:'question', deadline:Date.now()+120000 }; }
 let dexNumberMapPromise=null;
@@ -52,58 +34,31 @@ export class PokemonRoom {
   publicQuestion() { if(!this.room?.question)return null; const q=this.room.question; const out={cho:q.cho,length:q.length,number:q.number,phase:q.phase,deadline:q.deadline}; if(q.phase==='reveal')out.answer=q.answer; return out; }
   players() { return Object.values(this.room?.players||{}).map(p=>({id:p.id,name:p.name,score:p.score||0})).sort((a,b)=>b.score-a.score); }
   send(ws, payload) { try { ws.send(JSON.stringify(payload)); } catch {} }
-  broadcast(payload) { for(const [ws,info] of this.clients.entries())if(info.authenticated)this.send(ws,payload); }
-  sendState(ws, playerId) { const p=this.room.players[playerId]||{score:0}; this.send(ws,{type:'state',question:this.publicQuestion(),players:this.players(),me:{score:p.score||0},hostId:this.room.hostId}); }
+  broadcast(payload) { for(const ws of this.clients.keys())this.send(ws,payload); }
+  sendState(ws, playerId) { const p=this.room.players[playerId]||{score:0}; this.send(ws,{type:'state',question:this.publicQuestion(),players:this.players(),me:{score:p.score||0}}); }
   async fetch(request) {
     const url=new URL(request.url); const path=url.pathname;
     if(path==='/init' && request.method==='POST') {
       const body=await request.json(); const playerId=String(body.playerId||'host').slice(0,64); const name=String(body.name||'플레이어').slice(0,14);
-      if(!validPassword(body.password))return json({error:'비밀번호는 숫자 4~8자리로 설정하세요.'},400);
-      const passwordRecord=await newPasswordRecord(String(body.password));
-      this.room={code:body.code,hostId:playerId,passwordRecord,players:{[playerId]:{id:playerId,name,score:0,hints:0}},question:newQuestion(1),createdAt:Date.now()};
-      await this.save(); await this.state.storage.setAlarm(this.room.question.deadline); return json({ok:true});
+      this.room={code:body.code,players:{[playerId]:{id:playerId,name,score:0,hints:0}},question:newQuestion(1),createdAt:Date.now()}; await this.save(); await this.state.storage.setAlarm(this.room.question.deadline); return json({ok:true});
     }
     if(path==='/ws') {
       if(request.headers.get('Upgrade')!=='websocket')return new Response('Expected websocket',{status:426});
       await this.load(); if(!this.room)return json({error:'방을 찾을 수 없습니다.'},404);
-      const playerId=(url.searchParams.get('playerId')||'guest').slice(0,64);
-      const name=(url.searchParams.get('name')||'플레이어').slice(0,14);
-      const pair=new WebSocketPair(); const client=pair[0],server=pair[1]; server.accept();
-      this.clients.set(server,{playerId,name,authenticated:false});
+      const playerId=(url.searchParams.get('playerId')||'guest').slice(0,64); const name=(url.searchParams.get('name')||'플레이어').slice(0,14);
+      if(!this.room.players[playerId])this.room.players[playerId]={id:playerId,name,score:0,hints:0}; else this.room.players[playerId].name=name;
+      await this.save(); const pair=new WebSocketPair(); const client=pair[0],server=pair[1]; server.accept(); this.clients.set(server,playerId);
       server.addEventListener('message',event=>this.onMessage(server,playerId,event.data));
-      server.addEventListener('close',()=>{this.clients.delete(server);this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0},hostId:this.room?.hostId})});
+      server.addEventListener('close',()=>{this.clients.delete(server);this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0}})});
       server.addEventListener('error',()=>this.clients.delete(server));
+      this.sendState(server,playerId); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0}});
       return new Response(null,{status:101,webSocket:client});
     }
     return json({error:'Not found'},404);
   }
   async onMessage(ws,playerId,raw) {
     let msg; try{msg=JSON.parse(raw)}catch{return}
-    await this.load(); if(!this.room)return;
-    const clientInfo=this.clients.get(ws); if(!clientInfo)return;
-    if(!clientInfo.authenticated) {
-      if(msg.action!=='authenticate')return;
-      if(!(await checkPassword(String(msg.password||''),this.room.passwordRecord))) {
-        this.send(ws,{type:'error',message:'비밀번호가 올바르지 않습니다.'});
-        try{ws.close(1008,'Invalid room password')}catch{}
-        this.clients.delete(ws); return;
-      }
-      clientInfo.authenticated=true;
-      if(!this.room.players[playerId])this.room.players[playerId]={id:playerId,name:clientInfo.name,score:0,hints:0};
-      else this.room.players[playerId].name=clientInfo.name;
-      await this.save();
-      this.send(ws,{type:'authenticated'});
-      this.sendState(ws,playerId);
-      this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0},hostId:this.room.hostId});
-      return;
-    }
-    const player=this.room.players[playerId]; if(!player)return;
-    if(msg.action==='changePassword') {
-      if(playerId!==this.room.hostId){this.send(ws,{type:'error',message:'방장만 비밀번호를 변경할 수 있습니다.'});return;}
-      if(!validPassword(msg.password)){this.send(ws,{type:'error',message:'새 비밀번호는 숫자 4~8자리여야 합니다.'});return;}
-      this.room.passwordRecord=await newPasswordRecord(String(msg.password));
-      await this.save(); this.send(ws,{type:'passwordChanged'}); return;
-    }
+    await this.load(); if(!this.room)return; const player=this.room.players[playerId]; if(!player)return;
     if(msg.action==='hint') {
       if(this.room.question.phase!=='question')return; const kinds={type:1,gen:2,letters:3,dex:4}; const count=kinds[msg.kind]; if(!count||count<=player.hints)return;
       player.hints=count; await this.save(); this.send(ws,{type:'hint',kind:msg.kind,text:await hintText(this.room.question.answer,count)}); return;
@@ -111,13 +66,13 @@ export class PokemonRoom {
     if(msg.action==='answer') {
       const q=this.room.question; if(q.phase!=='question')return; const attempt=clean(msg.answer); if(attempt!==clean(q.answer)){this.send(ws,{type:'result',message:'아쉬워요! 다시 생각해 보세요.',score:player.score||0});return;}
       const earned=Math.max(0,14-(player.hints||0)*2); player.score=(player.score||0)+earned; q.phase='reveal'; q.deadline=Date.now()+5000; await this.save(); await this.state.storage.setAlarm(q.deadline);
-      this.broadcast({type:'result',message:`🎉 ${player.name}님 정답! ${q.answer} · +${earned}P`,answer:q.answer,score:player.score,players:this.players()}); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:player.score},hostId:this.room.hostId}); return;
+      this.broadcast({type:'result',message:`🎉 ${player.name}님 정답! ${q.answer} · +${earned}P`,answer:q.answer,score:player.score,players:this.players()}); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:player.score}}); return;
     }
     if(msg.action==='next' && qSafe(this.room.question)) { await this.advance(); return; }
-    if(msg.action==='leave') { delete this.room.players[playerId]; await this.save(); this.clients.delete(ws); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0},hostId:this.room.hostId}); }
+    if(msg.action==='leave') { delete this.room.players[playerId]; await this.save(); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0}}); }
   }
-  async advance() { if(!this.room)return; this.room.question=newQuestion((this.room.question?.number||0)+1); for(const p of Object.values(this.room.players))p.hints=0; await this.save(); await this.state.storage.setAlarm(this.room.question.deadline); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0},hostId:this.room.hostId}); }
-  async alarm() { await this.load(); if(!this.room?.question)return; const q=this.room.question; if(q.phase==='question'&&Date.now()>=q.deadline){q.phase='reveal';q.deadline=Date.now()+5000;await this.save();await this.state.storage.setAlarm(q.deadline);this.broadcast({type:'result',message:'⏰ 시간 종료! 정답은 '+q.answer+' 입니다.',answer:q.answer});this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0},hostId:this.room.hostId});}else if(q.phase==='reveal'&&Date.now()>=q.deadline){await this.advance();}else await this.state.storage.setAlarm(q.deadline); }
+  async advance() { if(!this.room)return; this.room.question=newQuestion((this.room.question?.number||0)+1); for(const p of Object.values(this.room.players))p.hints=0; await this.save(); await this.state.storage.setAlarm(this.room.question.deadline); this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0}}); }
+  async alarm() { await this.load(); if(!this.room?.question)return; const q=this.room.question; if(q.phase==='question'&&Date.now()>=q.deadline){q.phase='reveal';q.deadline=Date.now()+5000;await this.save();await this.state.storage.setAlarm(q.deadline);this.broadcast({type:'result',message:'⏰ 시간 종료! 정답은 '+q.answer+' 입니다.',answer:q.answer});this.broadcast({type:'state',question:this.publicQuestion(),players:this.players(),me:{score:0}});}else if(q.phase==='reveal'&&Date.now()>=q.deadline){await this.advance();}else await this.state.storage.setAlarm(q.deadline); }
 }
 function qSafe(q){return !!q;}
 
